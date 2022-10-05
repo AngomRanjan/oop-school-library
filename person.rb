@@ -1,4 +1,5 @@
 require './nameable'
+require './rental'
 
 class Person < Nameable
   # getter
@@ -28,10 +29,8 @@ class Person < Nameable
     @name
   end
 
-  def add_rental(rental, date)
-    @rentals.push(rental)
-    rentals.person = self
-    rentals.date = date
+  def add_rental(book, date)
+    Rental.new(book, date, self)
   end
 
   private
