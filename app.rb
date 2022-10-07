@@ -26,9 +26,12 @@ class App
   end
 
   def list_all_persons
-    print 'list all persons'
-    puts 'Press Enter to continue ...'
-    $stdin.getc
+    if @persons.empty?
+      puts 'Person List is empty!'
+    else
+      @persons.each { |person| puts "[#{person.class}] Name: #{person.name}, ID: #{person.id}, Age: #{person.age}" }
+    end
+    back_to_main_menu
   end
 
   def create_a_person
