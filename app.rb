@@ -1,4 +1,9 @@
-# app class
+require './student'
+require './teacher'
+require './book'
+require './rental'
+require 'io/console'
+
 class App
   def initialize
     @books = []
@@ -6,10 +11,18 @@ class App
     @rentals = []
   end
 
+  def back_to_main_menu
+    print "\n\nPress any key to return to main menu...."
+    STDIN.getch
+  end
+
   def list_all_books
-    print 'list all books'
-    puts 'Press Enter to continue ...'
-    $stdin.getc
+    if @books.empty?
+      puts 'Book List is empty!'
+    else
+      @books.each { |book| puts "Title: '#{book.title}', Author: #{book.author}" }
+    end
+    back_to_main_menu
   end
 
   def list_all_persons
