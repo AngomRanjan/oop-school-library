@@ -29,6 +29,7 @@ class App
     if @books.empty?
       puts 'Book List is empty!'
     else
+      print "\n====== List of Books available =======\n\n"
       @books.each { |book| puts "Title: '#{book.title}', Author: #{book.author}" }
     end
     back_to_main_menu
@@ -38,6 +39,7 @@ class App
     if @persons.empty?
       puts 'Person List is empty!'
     else
+      print "\n====== List of Books available =======\n\n"
       @persons.each { |person| puts "[#{person.class}] Name: #{person.name}, ID: #{person.id}, Age: #{person.age}" }
     end
     back_to_main_menu
@@ -61,9 +63,9 @@ class App
     item_valid = false
     msg = "\nPlease Enter #{str}:  "
     until item_valid
-      print "\n", msg
+      print msg
       item_valid = (name_str = gets.chomp).length.positive?
-      msg = "Invalid Input! #{str} cannot be empty\nPlease Enter Again: "
+      msg = "\nInvalid Input! #{str} cannot be empty\nPlease Enter Again: "
     end
     name_str
   end
@@ -91,18 +93,17 @@ class App
     stud = Student.new(age, name, parent_permission: permission)
     @persons << stud
     print "\n\nID: #{stud.id} Name: #{stud.name} Age: #{stud.age} Parent Permission: #{stud.parent_permission}"
-    print "\nNew Student is created successfuly\n"
+    print "\nNew Student is created successfully!\n"
   end
 
   def create_teacher
     name = name_title('name')
     age = age_entry
     specialization = name_title('specialization')
-    $stdin.getch
     teacher = Teacher.new(age, specialization, name)
     @persons << teacher
-    print "\n\nName: #{teacher.name} Age: #{teacher.age}"
-    print "\nNew Teacher is created successfuly\n"
+    print "\n\nID: #{teacher.id} Name: #{teacher.name} Age: #{teacher.age}"
+    print "\nNew Teacher is created successfully!\n"
   end
 
   def create_a_person
@@ -118,9 +119,18 @@ class App
   end
 
   def create_a_book
-    print 'create a book'
-    puts 'Press Enter to continue ...'
-    $stdin.getc
+    add_item = true
+    while add_item
+      print "\nCreate a book\n"
+      title = name_title('title')
+      author = name_title('author')
+      book = Book.new(title, author)
+      @books << book
+      print "\n\nTitle: #{book.title} Author: #{book.author}"
+      print "\nNew Book is created successfully!\n"
+      add_item = choice_bool(%w[Y y], "Press [Y/y] to add another book\nOr", 's')
+      system('clear')
+    end
   end
 
   def create_a_rental
