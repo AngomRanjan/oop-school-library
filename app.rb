@@ -16,12 +16,12 @@ class App
     $stdin.getch
   end
 
-  def choice_bool(test='', str='',type='i')
-    print "\n", str, "\n Press any key to return to main menu ..."
+  def choice_bool(test = '', str = '', type = 'i')
+    print "\n", str, "\nPress any key to return to main menu ..."
     if type == 'i'
-      return test.include? $stdin.getch.to_i
+      test.include? $stdin.getch.to_i
     else
-      return test.include? $stdin.getch
+      test.include? $stdin.getch
     end
   end
 
@@ -44,14 +44,15 @@ class App
   end
 
   def person_type
-    opt=0
-    mid_str="\nEnter Your choice: "
+    opt = 0
+    mid_str = "\nEnter Your choice: "
     loop do
-      system ('clear')
-      print "\nCreate a Person\n"      
+      system('clear')
+      print "\nCreate a Person\n"
       print "\nEnter 1 to create Student\nEnter 2 to create Teacher", mid_str
-      break if (1..2).include? (opt = gets.chomp.to_i)
-      mid_str = "\n Invalid Type! Please Enter 1 or 2: "    
+      break if (1..2).include?(opt = gets.chomp.to_i)
+
+      mid_str = "\n Invalid Type! Please Enter 1 or 2: "
     end
     opt
   end
@@ -59,52 +60,60 @@ class App
   def name_title(str)
     item_valid = false
     msg = "\nPlease Enter #{str}:  "
-    while !item_valid
-      print "\n",msg
-      item_valid = (name_str = gets.chomp).length > 0
-      msg = "\nInvalid Input! #{str} cannot be empty\n Please Enter Again: "
+    until item_valid
+      print "\n", msg
+      item_valid = (name_str = gets.chomp).length.positive?
+      msg = "Invalid Input! #{str} cannot be empty\nPlease Enter Again: "
     end
     name_str
   end
 
   def age_entry
     item_valid = false
-    while !item_valid
-      print "Enter Age: "
+    until item_valid
+      print 'Enter Age: '
       item_valid = (1..100).include?(age = gets.chomp.to_i)
-      print "Enter a valid age between 1 to 100" if !item_valid
+      print 'Enter a valid age between 1 to 100' unless item_valid
     end
     age
   end
 
-  def create_student    
+  def create_student
     name = name_title('name')
     age = age_entry
     item_valid = false
-    while !item_valid
-      print "Whether have parent permission [Y/N]: "
-      item_valid = ['Y','y','N','n'].include?(permission = $stdin.getch)
+    until item_valid
+      print 'Whether have parent permission [Y/N]: '
+      item_valid = %w[Y y N n].include?(permission = $stdin.getch)
+      puts
     end
-    (permission.capitalize == 'Y') ? permission = true : permission = false
-    student = Student.new(age, name, parent_permission: permission)
-    @persons << student
-    print "\n\nID: #{student.id} Name: #{student.name} Age: #{student.age} Parent Permission: #{student.parent_permission}"
+    permission = permission.capitalize == 'Y'
+    stud = Student.new(age, name, parent_permission: permission)
+    @persons << stud
+    print "\n\nID: #{stud.id} Name: #{stud.name} Age: #{stud.age} Parent Permission: #{stud.parent_permission}"
     print "\nNew Student is created successfuly\n"
-    $stdin.getch
   end
-  
+
   def create_teacher
+    name = name_title('name')
+    age = age_entry
+    specialization = name_title('specialization')
+    $stdin.getch
+    teacher = Teacher.new(age, specialization, name)
+    @persons << teacher
+    print "\n\nName: #{teacher.name} Age: #{teacher.age}"
+    print "\nNew Teacher is created successfuly\n"
   end
 
   def create_a_person
     add_item = true
     while add_item
-      if 1 == person_type
+      if person_type == 1
         create_student
       else
         create_teacher
       end
-      add_item=false
+      add_item = choice_bool(%w[Y y], "Press [Y/y] to add another person\nOr", 's')
     end
   end
 
