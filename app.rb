@@ -4,7 +4,7 @@ require './book'
 require './rental'
 require 'io/console'
 
-class App
+class App # rubocop:disable Metrics/ClassLength
   def initialize
     @books = []
     @persons = []
@@ -133,17 +133,83 @@ class App
     end
   end
 
-  def create_a_rental
-    print 'create a rental'
-    puts 'Press Enter to continue ...'
-    $stdin.getc
+  def check_books_persons
+    if @books.empty? || @persons.empty?
+      puts 'Book list Or Person list is empty!'
+      puts 'Please try entering some'
+      false
+    else
+      true
+    end
   end
 
-  def list_all_rentals
-    print "\nlist all rental"
-    print "\nPress Enter to continue ..."
-    $stdin.getc
+  def sel_book_by_no
+    sel_mode = false
+    until sel_mode
+      print "\nSelect a book from the following list by number\n"
+      @books.map.with_index do |book, index|
+        puts "No: #{index + 1}) Title: '#{book.title}', Author: #{book.author}"
+      end
+      print "\nEnter your choice: "
+      sel_mode = (1..@books.length).include?(opt = gets.chomp.to_i)
+    end
+    opt - 1
   end
+
+  def sel_person_by_no
+    sel_mode = false
+    until sel_mode
+      print "\nSelect a person from the following list by number\n"
+      @persons.map.with_index do |person, index|
+        puts "No: #{index + 1}) Name: '#{person.name}', Age: #{person.age}"
+      end
+      print "\nEnter your choice: "
+      sel_mode = (1..@persons.length).include?(opt = gets.chomp.to_i)
+    end
+    opt - 1
+  end
+
+  def create_a_rental
+    add_item = check_books_persons
+    while add_item
+      sel_book = @books[sel_book_by_no]
+      sel_person = @persons[sel_person_by_no]
+      print "\nEnter a date [format yyyy/mm/dd]: "
+      date = gets.chomp
+      @rentals << Rental.new(date, sel_person, sel_book)
+      print "\nDate: #{date} Book: #{sel_book.title} Name: #{sel_person.name}"
+      print "\nNew Rentals Added Successfully!\n"
+      add_item = choice_bool(%w[Y y], "Press [Y/y] to add another rental\nOr", 's')
+    end
+  end
+
+  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable Metrics/PerceivedComplexity
+  def list_all_rentals # rubocop:disable Metrics/CyclomaticComplexity
+    selper = false
+    if @rentals.empty?
+      puts 'rentals List is empty!'
+    else
+      until selper
+        system('clear')
+        print "\n====== List of Persons On Rental List =======\n\n"
+        @rentals.each { |rental| puts "Name: #{rental.person.name}, ID: #{rental.person.id}" }
+        print 'Enter an ID from the list : '
+        id = gets.chomp.to_i
+        @rentals.each { |rental| selper = true if rental.person.id == id }
+      end
+      nam1 = @persons.find { |person| person.id == id }
+      puts "\nList of books rented to ID: #{id} Name: #{nam1.name}\n\n"
+      @rentals.each do |rental|
+        if rental.person.id == id
+          puts "Date: #{rental.date}. Book: '#{rental.book.title}' Author: #{rental.book.author}"
+        end
+      end
+    end
+    back_to_main_menu
+  end
+  # rubocop:enable Metrics/PerceivedComplexity
+  # rubocop:enable Metrics/MethodLength
 
   def exit_app
     system('clear')
