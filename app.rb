@@ -25,71 +25,53 @@ class App # rubocop:disable Metrics/ClassLength
     end
   end
 
-  def list_all_books
-    if @books.empty?
-      puts 'Book List is empty!'
-    else
-      print "\n====== List of Books available =======\n\n"
-      @books.each { |book| puts "Title: '#{book.title}', Author: #{book.author}" }
+  def list_item(item)
+    unless item.empty?
+      item.each {|i| yield i}
+      return true
     end
+    print "\nNo Record Found! Please try entering some!\n"
+    return false
+  end
+
+  def list_all_books
+    print "\n====== List of Books available =======\n\n"
+    list_item(@books) { |book| puts "Title: '#{book.title}', Author: #{book.author}" }
     back_to_main_menu
   end
 
   def list_all_persons
-    if @persons.empty?
-      puts 'Person List is empty!'
-    else
-      print "\n====== List of Books available =======\n\n"
-      @persons.each { |person| puts "[#{person.class}] Name: #{person.name}, ID: #{person.id}, Age: #{person.age}" }
-    end
+    print "\n====== List of Books available =======\n\n"
+    list_item(@persons) { |person| puts "[#{person.class}] Name: #{person.name}, ID: #{person.id}, Age: #{person.age}" }
     back_to_main_menu
   end
 
   def person_type
     opt = 0
-    mid_str = "\nEnter Your choice: "
-    loop do
+    c = 0
+    until (1..2).include? opt
       system('clear')
-      print "\nCreate a Person\n"
-      print "\nEnter 1 to create Student\nEnter 2 to create Teacher", mid_str
-      break if (1..2).include?(opt = gets.chomp.to_i)
-
-      mid_str = "\n Invalid Type! Please Enter 1 or 2: "
+      msg = (c += 1) > 1 ? "\nInvalid Type! Please Enter 1 or 2: " : "\nEnter your choice: "
+      print "\nCreate a Person\n\nEnter 1 to create Student\nEnter 2 to create Teacher", msg
+      return opt if (1..2).include?(opt = gets.chomp.to_i)
     end
-    opt
   end
 
-  def name_title(str)
-    item_valid = false
-    msg = "\nPlease Enter #{str}:  "
-    until item_valid
+  def validate(str, inv_msg, msg = "Please Enter #{str}: ", item_data = nil, isvalid: false)
+    until isvalid
       print msg
-      item_valid = (name_str = gets.chomp).length.positive?
-      msg = "\nInvalid Input! #{str} cannot be empty\nPlease Enter Again: "
+      item_data = yield item_data
+      msg = "\nInvalid #{str}! " + inv_msg + ' Please Enter Again: ' unless (isvalid = !item_data.nil?)
     end
-    name_str
-  end
-
-  def age_entry
-    item_valid = false
-    until item_valid
-      print 'Enter Age: '
-      item_valid = (1..100).include?(age = gets.chomp.to_i)
-      print 'Enter a valid age between 1 to 100' unless item_valid
-    end
-    age
+    item_data
   end
 
   def create_student
-    name = name_title('name')
-    age = age_entry
-    item_valid = false
-    until item_valid
-      print 'Whether have parent permission [Y/N]: '
-      item_valid = %w[Y y N n].include?(permission = $stdin.getch)
-      puts
-    end
-    permission = permission.capitalize == 'Y'
+    name = validate('name', 'Name cannot be empty!') { |n| n if (n = gets.chomp).length.positive? }
+    age = validate('age', 'enter a value between 1 to 100.') { |n| n if (1..100).include?(n = gets.chomp.to_i) }
+    permission = validate('Parent Permission', 'press [Y/N]', "Whether Have Parent Permission? ") {
+      |n| n if %w[Y y N n].include?(n = $stdin.getch) }
+    permission = (permission.capitalize == 'Y')
     stud = Student.new(age, name, parent_permission: permission)
     @persons << stud
     print "\n\nID: #{stud.id} Name: #{stud.name} Age: #{stud.age} Parent Permission: #{stud.parent_permission}"
