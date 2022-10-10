@@ -11,8 +11,9 @@ class App # rubocop:disable Metrics/ClassLength
     @rentals = []
   end
 
-  def back_to_main_menu
-    print "\n\nPress any key to return to main menu...."
+  def back_to_main_menu(msg = "")
+    print "\n\n", msg, "\nPress any key to return to main menu...."
+    return yield if block_given?
     $stdin.getch
   end
 
@@ -88,7 +89,7 @@ class App # rubocop:disable Metrics/ClassLength
       else
         create_teacher
       end
-      add_item = choice_bool(%w[Y y], "Press [Y/y] to add another person\nOr", 's')
+      add_item = back_to_main_menu("Press [Y/y] to add another person\nOr") { %w[Y y N n].include?(n = $stdin.getch) }
     end
   end
 
@@ -98,12 +99,12 @@ class App # rubocop:disable Metrics/ClassLength
       system('clear')
       print "\nCreate a book\n"
       title = validate('title', 'Title cannot be empty') { |n| n if (n = gets.chomp).length.positive? }
-      author = validate('author', 'Author') { |n| n if (n = gets.chomp).length.positive? }
+      author = validate('author', 'Author cannot be empty') { |n| n if (n = gets.chomp).length.positive? }
       book = Book.new(title, author)
       @books << book
       print "\n\nTitle: #{book.title} Author: #{book.author}"
       print "\nNew Book is created successfully!\n"
-      add_item = choice_bool(%w[Y y], "Press [Y/y] to add another book\nOr", 's')
+      add_item = back_to_main_menu("Press [Y/y] to add another book\nOr") { %w[Y y N n].include?(n = $stdin.getch) }
     end
   end
 
@@ -153,7 +154,7 @@ class App # rubocop:disable Metrics/ClassLength
       @rentals << Rental.new(date, sel_person, sel_book)
       print "\nDate: #{date} Book: #{sel_book.title} Name: #{sel_person.name}"
       print "\nNew Rentals Added Successfully!\n"
-      add_item = choice_bool(%w[Y y], "Press [Y/y] to add another rental\nOr", 's')
+      add_item = back_to_main_menu("Press [Y/y] to add another rental\nOr") { %w[Y y N n].include?(n = $stdin.getch) }
     end
   end
 
