@@ -46,17 +46,6 @@ class App # rubocop:disable Metrics/ClassLength
     back_to_main_menu
   end
 
-  def person_type
-    opt = 0
-    c = 0
-    until (1..2).include? opt
-      system('clear')
-      msg = (c += 1) > 1 ? "\nInvalid Type! Please Enter 1 or 2: " : "\nEnter your choice: "
-      print "\nCreate a Person\n\nEnter 1 to create Student\nEnter 2 to create Teacher", msg
-      return opt if (1..2).include?(opt = gets.chomp.to_i)
-    end
-  end
-
   def validate(str, inv_msg, msg = "Please Enter #{str}: ", item_data = nil, isvalid: false)
     until isvalid
       print msg
@@ -79,9 +68,9 @@ class App # rubocop:disable Metrics/ClassLength
   end
 
   def create_teacher
-    name = name_title('name')
-    age = age_entry
-    specialization = name_title('specialization')
+    name = validate('name', 'Name cannot be empty!') { |n| n if (n = gets.chomp).length.positive? }
+    age = validate('age', 'enter a value between 1 to 100.') { |n| n if (1..100).include?(n = gets.chomp.to_i) }
+    specialization = validate('specialization', 'Specialization cannot be empty!') { |n| n if (n = gets.chomp).length.positive? }
     teacher = Teacher.new(age, specialization, name)
     @persons << teacher
     print "\n\nID: #{teacher.id} Name: #{teacher.name} Age: #{teacher.age}"
@@ -91,6 +80,7 @@ class App # rubocop:disable Metrics/ClassLength
   def create_a_person
     add_item = true
     while add_item
+      person_type = validate('person type', 'enter 1 or 2') { |n| n if (1..2).include?(n = gets.chomp.to_i) }
       if person_type == 1
         create_student
       else
