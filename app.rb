@@ -11,28 +11,20 @@ class App # rubocop:disable Metrics/ClassLength
     @rentals = []
   end
 
-  def back_to_main_menu(msg = "")
+  def back_to_main_menu(msg = '')
     print "\n\n", msg, "\nPress any key to return to main menu...."
     return yield if block_given?
+
     $stdin.getch
   end
 
-  def choice_bool(test = '', str = '', type = 'i')
-    print "\n", str, "\nPress any key to return to main menu ..."
-    if type == 'i'
-      test.include? $stdin.getch.to_i
-    else
-      test.include? $stdin.getch
-    end
-  end
-
-  def list_item(item)
+  def list_item(item, &)
     unless item.empty?
-      item.each {|i| yield i}
+      item.each(&)
       return true
     end
     print "\nNo Record Found! Please try entering some!\n"
-    return false
+    false
   end
 
   def list_all_books
@@ -51,7 +43,7 @@ class App # rubocop:disable Metrics/ClassLength
     until isvalid
       print msg
       item_data = yield item_data
-      msg = "\nInvalid #{str}! " + inv_msg + ' Please Enter Again: ' unless (isvalid = !item_data.nil?)
+      msg = "\nInvalid #{str}! #{inv_msg} Please Enter Again: " unless (isvalid = !item_data.nil?)
     end
     item_data
   end
@@ -59,8 +51,9 @@ class App # rubocop:disable Metrics/ClassLength
   def create_student
     name = validate('name', 'Name cannot be empty!') { |n| n if (n = gets.chomp).length.positive? }
     age = validate('age', 'enter a value between 1 to 100.') { |n| n if (1..100).include?(n = gets.chomp.to_i) }
-    permission = validate('Parent Permission', 'press [Y/N]', "\nWhether Have Parent Permission? ") {
-      |n| n if %w[Y y N n].include?(n = $stdin.getch) }
+    permission = validate('Parent Permission', 'press [Y/N]', "\nWhether Have Parent Permission? ") do |n|
+      n if %w[Y y N n].include?(n = $stdin.getch)
+    end
     permission = (permission.capitalize == 'Y')
     stud = Student.new(age, name, parent_permission: permission)
     @persons << stud
@@ -71,7 +64,11 @@ class App # rubocop:disable Metrics/ClassLength
   def create_teacher
     name = validate('name', 'Name cannot be empty!') { |n| n if (n = gets.chomp).length.positive? }
     age = validate('age', 'enter a value between 1 to 100.') { |n| n if (1..100).include?(n = gets.chomp.to_i) }
-    specialization = validate('specialization', 'Specialization cannot be empty!') { |n| n if (n = gets.chomp).length.positive? }
+    specialization = validate('specialization', 'Specialization cannot be empty!') do |n|
+      if (n = gets.chomp).length.positive?
+        n
+      end
+    end
     teacher = Teacher.new(age, specialization, name)
     @persons << teacher
     print "\n\nID: #{teacher.id} Name: #{teacher.name} Age: #{teacher.age}"
@@ -89,7 +86,7 @@ class App # rubocop:disable Metrics/ClassLength
       else
         create_teacher
       end
-      add_item = back_to_main_menu("Press [Y/y] to add another person\nOr") { %w[Y y N n].include?(n = $stdin.getch) }
+      add_item = back_to_main_menu("Press [Y/y] to add another person\nOr") { %w[Y y N n].include?($stdin.getch) }
     end
   end
 
@@ -104,57 +101,43 @@ class App # rubocop:disable Metrics/ClassLength
       @books << book
       print "\n\nTitle: #{book.title} Author: #{book.author}"
       print "\nNew Book is created successfully!\n"
-      add_item = back_to_main_menu("Press [Y/y] to add another book\nOr") { %w[Y y N n].include?(n = $stdin.getch) }
+      add_item = back_to_main_menu("Press [Y/y] to add another book\nOr") { %w[Y y N n].include?($stdin.getch) }
     end
   end
 
-  def check_books_persons
-    if @books.empty? || @persons.empty?
-      puts 'Book list Or Person list is empty!'
-      puts 'Please try entering some'
-      false
-    else
-      true
-    end
-  end
-
-  def sel_book_by_no
-    sel_mode = false
+  def sel_item_by_no(item_name, item_length, sel_mode: false)
     until sel_mode
-      print "\nSelect a book from the following list by number\n"
-      @books.map.with_index do |book, index|
-        puts "No: #{index + 1}) Title: '#{book.title}', Author: #{book.author}"
+      print "\nCreate Rental Record\n\nSelect a #{item_name} from the following list by number\n"
+      if item_name == 'book'
+        list_item(@books) do |book|
+          puts "#{@books.find_index(book) + 1} - Title: '#{book.title}', Author: #{book.author}"
+        end
+      else
+        list_item(@persons) do |person|
+          puts "#{@persons.find_index(person) + 1} - Name: '#{person.name}', Age: #{person.age}"
+        end
       end
       print "\nEnter your choice: "
-      sel_mode = (1..@books.length).include?(opt = gets.chomp.to_i)
-    end
-    opt - 1
-  end
-
-  def sel_person_by_no
-    sel_mode = false
-    until sel_mode
-      print "\nSelect a person from the following list by number\n"
-      @persons.map.with_index do |person, index|
-        puts "No: #{index + 1}) Name: '#{person.name}', Age: #{person.age}"
-      end
-      print "\nEnter your choice: "
-      sel_mode = (1..@persons.length).include?(opt = gets.chomp.to_i)
+      sel_mode = (1..item_length).include?(opt = gets.chomp.to_i)
+      system('clear')
+      print "\nInvalid Input! Please enter a value between 1 to #{item_length}\n" unless sel_mode
     end
     opt - 1
   end
 
   def create_a_rental
-    add_item = check_books_persons
+    unless (add_item = !(@books.empty? || @persons.empty?))
+      back_to_main_menu("\nBook/ Person Record is empty! Please try adding some\n\n")
+    end
     while add_item
-      sel_book = @books[sel_book_by_no]
-      sel_person = @persons[sel_person_by_no]
-      print "\nEnter a date [format yyyy/mm/dd]: "
+      sel_book = @books[sel_item_by_no('book', @books.length)]
+      sel_person = @persons[sel_item_by_no('person', @persons.length)]
+      print "\nCreate Rental\n\nEnter a date [format yyyy/mm/dd]: "
       date = gets.chomp
       @rentals << Rental.new(date, sel_person, sel_book)
       print "\nDate: #{date} Book: #{sel_book.title} Name: #{sel_person.name}"
       print "\nNew Rentals Added Successfully!\n"
-      add_item = back_to_main_menu("Press [Y/y] to add another rental\nOr") { %w[Y y N n].include?(n = $stdin.getch) }
+      add_item = back_to_main_menu("Press [Y/y] to add another rental\nOr") { %w[Y y N n].include?($stdin.getch) }
     end
   end
 
@@ -188,8 +171,7 @@ class App # rubocop:disable Metrics/ClassLength
 
   def exit_app
     system('clear')
-    print "\n" * 3, "\t" * 3, '|| ', '=' * 8, ' Thanks For Using OOP School Library Application ',
-          '=' * 8, ' ||', "\n" * 3
+    print "\n\n\n\t\t\t", '|| ', '=' * 8, ' Thanks For Using Library Application ', '=' * 8, ' ||', "\n\n\n"
     exit
   end
 
