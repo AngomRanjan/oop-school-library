@@ -46,7 +46,7 @@ class App # rubocop:disable Metrics/ClassLength
     back_to_main_menu
   end
 
-  def validate(str, inv_msg, msg = "Please Enter #{str}: ", item_data = nil, isvalid: false)
+  def validate(str, inv_msg, msg = "\nPlease Enter #{str}: ", item_data = nil, isvalid: false)
     until isvalid
       print msg
       item_data = yield item_data
@@ -58,7 +58,7 @@ class App # rubocop:disable Metrics/ClassLength
   def create_student
     name = validate('name', 'Name cannot be empty!') { |n| n if (n = gets.chomp).length.positive? }
     age = validate('age', 'enter a value between 1 to 100.') { |n| n if (1..100).include?(n = gets.chomp.to_i) }
-    permission = validate('Parent Permission', 'press [Y/N]', "Whether Have Parent Permission? ") {
+    permission = validate('Parent Permission', 'press [Y/N]', "\nWhether Have Parent Permission? ") {
       |n| n if %w[Y y N n].include?(n = $stdin.getch) }
     permission = (permission.capitalize == 'Y')
     stud = Student.new(age, name, parent_permission: permission)
@@ -80,6 +80,8 @@ class App # rubocop:disable Metrics/ClassLength
   def create_a_person
     add_item = true
     while add_item
+      system('clear')
+      print "\n\t=====\tCreate A Person\t=====\n"
       person_type = validate('person type', 'enter 1 or 2') { |n| n if (1..2).include?(n = gets.chomp.to_i) }
       if person_type == 1
         create_student
@@ -93,15 +95,15 @@ class App # rubocop:disable Metrics/ClassLength
   def create_a_book
     add_item = true
     while add_item
+      system('clear')
       print "\nCreate a book\n"
-      title = name_title('title')
-      author = name_title('author')
+      title = validate('title', 'Title cannot be empty') { |n| n if (n = gets.chomp).length.positive? }
+      author = validate('author', 'Author') { |n| n if (n = gets.chomp).length.positive? }
       book = Book.new(title, author)
       @books << book
       print "\n\nTitle: #{book.title} Author: #{book.author}"
       print "\nNew Book is created successfully!\n"
       add_item = choice_bool(%w[Y y], "Press [Y/y] to add another book\nOr", 's')
-      system('clear')
     end
   end
 
