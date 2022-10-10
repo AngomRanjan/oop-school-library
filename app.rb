@@ -4,14 +4,14 @@ require './book'
 require './rental'
 require 'io/console'
 
-class App # rubocop:disable Metrics/ClassLength
+class App
   def initialize
     @books = []
     @persons = []
     @rentals = []
   end
 
-  def back_to_main_menu(msg = '')
+  def back_mm(msg = '')
     print "\n\n", msg, "\nPress any key to return to main menu...."
     return yield if block_given?
 
@@ -30,18 +30,18 @@ class App # rubocop:disable Metrics/ClassLength
   def list_all_books
     print "\n====== List of Books available =======\n\n"
     list_item(@books) { |book| puts "Title: '#{book.title}', Author: #{book.author}" }
-    back_to_main_menu
+    back_mm
   end
 
   def list_all_persons
-    print "\n====== List of Books available =======\n\n"
+    print "\n====== List of Persons =======\n\n"
     list_item(@persons) { |person| puts "[#{person.class}] Name: #{person.name}, ID: #{person.id}, Age: #{person.age}" }
-    back_to_main_menu
+    back_mm
   end
 
   def validate(str, inv_msg, msg = "\nPlease Enter #{str}: ", item_data = nil, isvalid: false)
     until isvalid
-      print msg
+      print str == 'person type' ? "#{msg}1 for student and 2 for teacher: " : msg
       item_data = yield item_data
       msg = "\nInvalid #{str}! #{inv_msg} Please Enter Again: " unless (isvalid = !item_data.nil?)
     end
@@ -86,7 +86,7 @@ class App # rubocop:disable Metrics/ClassLength
       else
         create_teacher
       end
-      add_item = back_to_main_menu("Press [Y/y] to add another person\nOr") { %w[Y y N n].include?($stdin.getch) }
+      add_item = back_mm("Press [Y/y] to add another person\nOr") { %w[Y y].include?($stdin.getch) }
     end
   end
 
@@ -101,7 +101,7 @@ class App # rubocop:disable Metrics/ClassLength
       @books << book
       print "\n\nTitle: #{book.title} Author: #{book.author}"
       print "\nNew Book is created successfully!\n"
-      add_item = back_to_main_menu("Press [Y/y] to add another book\nOr") { %w[Y y N n].include?($stdin.getch) }
+      add_item = back_mm("Press [Y/y] to add another book\nOr") { %w[Y y].include?($stdin.getch) }
     end
   end
 
@@ -126,9 +126,7 @@ class App # rubocop:disable Metrics/ClassLength
   end
 
   def create_a_rental
-    unless (add_item = !(@books.empty? || @persons.empty?))
-      back_to_main_menu("\nBook/ Person Record is empty! Please try adding some\n\n")
-    end
+    back_mm("\nBook/Person record is empty! try add some\n\n") unless (add_item = !(@books.empty? || @persons.empty?))
     while add_item
       sel_book = @books[sel_item_by_no('book', @books.length)]
       sel_person = @persons[sel_item_by_no('person', @persons.length)]
@@ -137,37 +135,29 @@ class App # rubocop:disable Metrics/ClassLength
       @rentals << Rental.new(date, sel_person, sel_book)
       print "\nDate: #{date} Book: #{sel_book.title} Name: #{sel_person.name}"
       print "\nNew Rentals Added Successfully!\n"
-      add_item = back_to_main_menu("Press [Y/y] to add another rental\nOr") { %w[Y y N n].include?($stdin.getch) }
+      add_item = back_mm("Press [Y/y] to add another rental\nOr") { %w[Y y].include?($stdin.getch) }
     end
   end
 
-  # rubocop:disable Metrics/MethodLength
-  # rubocop:disable Metrics/PerceivedComplexity
-  def list_all_rentals # rubocop:disable Metrics/CyclomaticComplexity
-    selper = false
-    if @rentals.empty?
-      puts 'rentals List is empty!'
-    else
-      until selper
-        system('clear')
-        print "\n====== List of Persons On Rental List =======\n\n"
-        @rentals.each { |rental| puts "Name: #{rental.person.name}, ID: #{rental.person.id}" }
-        print 'Enter an ID from the list : '
-        id = gets.chomp.to_i
-        @rentals.each { |rental| selper = true if rental.person.id == id }
-      end
-      nam1 = @persons.find { |person| person.id == id }
-      puts "\nList of books rented to ID: #{id} Name: #{nam1.name}\n\n"
-      @rentals.each do |rental|
-        if rental.person.id == id
-          puts "Date: #{rental.date}. Book: '#{rental.book.title}' Author: #{rental.book.author}"
-        end
-      end
+  def item_by_id(selper: false)
+    until selper
+      system('clear')
+      print "\n====== List of Persons On Rental List =======\n\n"
+      @rentals.each { |rental| puts "Name: #{rental.person.name}, ID: #{rental.person.id}" }
+      print 'Enter an ID from the list : '
+      id = gets.chomp.to_i
+      @rentals.each { |rental| selper = true if rental.person.id == id }
     end
-    back_to_main_menu
+    @persons.find { |person| person.id == id }
   end
-  # rubocop:enable Metrics/PerceivedComplexity
-  # rubocop:enable Metrics/MethodLength
+
+  def list_all_rentals
+    nam1 = item_by_id
+    puts "\nList of books rented to ID: #{nam1.id} Name: #{nam1.name}\n\n"
+    sel_list = @rentals.select { |rental| rental.person.id == nam1.id }
+    sel_list.each { |rental| puts "Date: #{rental.date}. Book: '#{rental.book.title}' Author: #{rental.book.author}" }
+    back_mm
+  end
 
   def exit_app
     system('clear')
