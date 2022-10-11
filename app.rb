@@ -14,13 +14,6 @@ class App
     @rentals = []
   end
 
-  def back_mm(msg = '')
-    print "\n\n", msg, "\nPress any key to return to main menu...."
-    return yield if block_given?
-
-    $stdin.getch
-  end
-
   def list_item(item, &)
     unless item.empty?
       item.each(&)
@@ -160,27 +153,5 @@ class App
     sel_list = @rentals.select { |rental| rental.person.id == nam1.id }
     sel_list.each { |rental| puts "Date: #{rental.date}. Book: '#{rental.book.title}' Author: #{rental.book.author}" }
     back_mm
-  end
-
-  def exit_app
-    system('clear')
-    print "\n\n\n\t\t\t", '|| ', '=' * 8, ' Thanks For Using Library Application ', '=' * 8, ' ||', "\n\n\n"
-    exit
-  end
-
-  def app_run(func)
-    system('clear')
-    method(func).call
-    "\nEnter your choice (1 - 7): "
-  end
-
-  def run(state: true)
-    ui = "\nEnter your choice (1 - 7): "
-    while state
-      print main_menu, ui
-      state = (s = gets.chomp.to_i) != 7
-      ui = (1..6).include?(s) ? app_run(main_items[s][:fun]) : "\nInvalid Choice!\nEnter your choice(1 - 7) again: "
-    end
-    exit
   end
 end

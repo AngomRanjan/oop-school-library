@@ -11,6 +11,13 @@ module MainMenu
     }
   end
 
+  def back_mm(msg = '')
+    print "\n\n", msg, "\nPress any key to return to main menu...."
+    return yield if block_given?
+
+    $stdin.getch
+  end
+
   def main_menu
     system('clear')
     menu_ui = "\n|****** Welcome to School library App! ******|\n\n"
@@ -18,4 +25,26 @@ module MainMenu
     menu_ui += "\n"
     menu_ui
   end
+end
+
+def exit_app
+  system('clear')
+  print "\n\n\n\t\t\t", '|| ', '=' * 8, ' Thanks For Using Library Application ', '=' * 8, ' ||', "\n\n\n"
+  exit
+end
+
+def app_run(func)
+  system('clear')
+  method(func).call
+  "\nEnter your choice (1 - 7): "
+end
+
+def run(state: true)
+  ui = "\nEnter your choice (1 - 7): "
+  while state
+    print main_menu, ui
+    state = (s = gets.chomp.to_i) != 7
+    ui = (1..6).include?(s) ? app_run(main_items[s][:fun]) : "\nInvalid Choice!\nEnter your choice(1 - 7) again: "
+  end
+  exit_app
 end
