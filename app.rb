@@ -3,8 +3,11 @@ require './teacher'
 require './book'
 require './rental'
 require 'io/console'
+require_relative 'main_menu'
 
 class App
+  include MainMenu
+
   def initialize
     @books = []
     @persons = []
@@ -169,5 +172,15 @@ class App
     system('clear')
     method(func).call
     "\nEnter your choice (1 - 7): "
+  end
+
+  def run(state: true)
+    ui = "\nEnter your choice (1 - 7): "
+    while state
+      print main_menu, ui
+      state = (s = gets.chomp.to_i) != 7
+      ui = (1..6).include?(s) ? app_run(main_items[s][:fun]) : "\nInvalid Choice!\nEnter your choice(1 - 7) again: "
+    end
+    exit
   end
 end
